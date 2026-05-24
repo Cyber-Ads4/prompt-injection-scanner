@@ -1,0 +1,44 @@
+# Cursor Rules — LLM Prompt Injection Scanner
+# Rod's AI Security Portfolio Project
+
+## Who I am
+I am a self-taught developer transitioning into AI security engineering.
+I am building this as a portfolio piece for roles at companies like Google and Anthropic.
+I have a background in hardware/IT support and I am actively learning Python and cloud security.
+
+## What this project is
+A command-line tool that tests LLM APIs (starting with Anthropic Claude) for prompt injection
+vulnerabilities. It sends structured attack payloads, analyzes responses, scores risk levels,
+and generates an HTML report. Based on OWASP LLM Top 10.
+
+## Stack
+- Python 3.11+
+- anthropic SDK (official Python client)
+- pytest for unit tests
+- No external frameworks — stdlib + anthropic only
+
+## Code style rules
+- PEP8 always
+- Type hints on every function signature
+- Docstrings on every function — explain WHAT it does AND WHY it matters for security
+- Descriptive variable names — no single letters except loop counters
+- Keep functions small (under 30 lines ideally) — one job per function
+- Use dataclasses for structured data (ScanResult, Payload, Report)
+- Constants in UPPER_SNAKE_CASE at the top of each module
+
+## Security-specific rules
+- Never hardcode API keys — always os.environ.get()
+- Add a comment explaining the security concept behind each payload category
+- When writing detection logic, explain the indicator being detected and why it signals injection
+- Reference OWASP LLM Top 10 categories in comments where relevant (LLM01, LLM02, etc.)
+
+## Learning mode
+I am learning as I build. When I ask you to explain code, teach the security concept
+behind it — not just the syntax. Connect the code to real-world attack scenarios.
+If I write something that could be improved for security or readability, tell me why.
+
+## What NOT to do
+- Do not use pandas, numpy, or heavy data libs — keep dependencies minimal
+- Do not generate UI frameworks — this is a CLI tool with HTML report output only
+- Do not skip docstrings or type hints to save space
+- Do not write functions longer than 40 lines without asking me first
