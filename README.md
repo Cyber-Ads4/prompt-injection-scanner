@@ -101,5 +101,5 @@ The `InjectionDetector` looks for indicators of compromise (IoCs) in model respo
 
 ## Built by
 
-Rod — Google Store VIBE Lead transitioning into AI Security Engineering.
+Rod - transitioning into AI Security Engineering.
 Part of a self-directed portfolio roadmap targeting cloud and AI security roles.
