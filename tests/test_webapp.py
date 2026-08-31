@@ -18,6 +18,7 @@ def client():
     """Return a Flask test client with a predictable, key-free environment."""
     flask_app.config["TESTING"] = True
     os.environ.pop("ANTHROPIC_API_KEY", None)
+    os.environ.pop("APP_PASSWORD", None)
     with flask_app.test_client() as client:
         yield client
 
@@ -47,3 +48,37 @@ def test_report_without_prior_scan_redirects_home(client) -> None:
     response = client.get("/report.html", follow_redirects=True)
     assert response.status_code == 200
     assert b"Run scan" in response.data
+
+
+def test_index_accessible_without_app_password(client) -> None:
+    """The zero-config local workflow (no APP_PASSWORD) needs no login."""
+    response = client.get("/")
+    assert response.status_code == 200
+
+
+def test_index_requires_login_when_app_password_set(client, monkeypatch) -> None:
+    """Setting APP_PASSWORD must gate every route behind a login redirect."""
+    monkeypatch.setenv("APP_PASSWORD", "secret123")
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_login_with_correct_password_grants_access(client, monkeypatch) -> None:
+    """A correct password should authenticate the session and unlock the app."""
+    monkeypatch.setenv("APP_PASSWORD", "secret123")
+    response = client.post(
+        "/login", data={"password": "secret123"}, follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert b"Run scan" in response.data
+
+
+def test_login_with_wrong_password_is_rejected(client, monkeypatch) -> None:
+    """An incorrect password must not authenticate the session."""
+    monkeypatch.setenv("APP_PASSWORD", "secret123")
+    response = client.post(
+        "/login", data={"password": "wrong"}, follow_redirects=True
+    )
+    assert b"Incorrect password" in response.data
+    assert b"Run scan" not in response.data

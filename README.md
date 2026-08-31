@@ -122,9 +122,41 @@ Then open **http://127.0.0.1:5000** — pick a category, hit **Run scan**, and v
 in a table with the same risk breakdown as the CLI, plus a button to download the
 standalone HTML report.
 
-⚠ This runs a live scan against a real model using your API key. It's built to run
-locally only — don't expose it on a public network, since anyone who can reach it
-could trigger scans that burn your API quota.
+⚠ This runs a live scan against a real model using your API key. Running it with no
+`APP_PASSWORD` set (the default) is fine on `127.0.0.1` where only you can reach it,
+but leaves it open — don't put it on a public network like that. See **Deploying
+publicly** below before exposing it.
+
+---
+
+## Deploying publicly
+
+If you want a live URL — for a portfolio demo, say — the web UI supports a password
+gate and per-IP rate limiting so it isn't an open API-key-burning endpoint:
+
+- **`APP_PASSWORD`** — set this and every route requires logging in with that
+  password first (session-based, checked with a constant-time comparison). Leave it
+  unset for the local, no-login workflow above.
+- **`/scan`** is rate-limited to 5 requests per hour per IP, on top of the password
+  gate — a second layer, not a substitute for it.
+- **`FLASK_SECRET_KEY`** — set this in production so login sessions survive a
+  server restart (otherwise a random key is generated per process).
+
+### Deploy to Render
+
+This repo includes a `render.yaml` blueprint:
+
+1. Push this repo to GitHub (already done if you're reading this from there).
+2. In the [Render dashboard](https://dashboard.render.com), choose **New +** →
+   **Blueprint**, and point it at this repo. Render reads `render.yaml` and creates
+   the web service automatically (free tier, `gunicorn` as the production server).
+3. When prompted, set the environment variables: `ANTHROPIC_API_KEY` and
+   `APP_PASSWORD`. `FLASK_SECRET_KEY` is generated for you.
+4. Deploy. Render gives you a public `https://<your-app>.onrender.com` URL —
+   log in with the password you set, and scan away.
+
+The same `gunicorn webapp.app:app` command works on any other Python host
+(Fly.io, Railway, a VPS) if you'd rather not use Render.
 
 ---
 

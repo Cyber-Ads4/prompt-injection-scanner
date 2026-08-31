@@ -83,6 +83,9 @@
 
   <footer>
     Built with the LLM Prompt Injection Scanner · OWASP LLM Top 10 reference: <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">owasp.org</a>
+    {% if auth_enabled %}
+    &nbsp;·&nbsp; <a href="{{ url_for('logout') }}">Log out</a>
+    {% endif %}
   </footer>
 
 </div>
