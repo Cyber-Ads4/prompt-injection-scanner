@@ -58,12 +58,17 @@ class ReportGenerator:
             output_path: File path to write the HTML report to
         """
         os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
-        html = self._build_html(results)
+        html = self.build_html(results)
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(html)
 
-    def _build_html(self, results: list) -> str:
-        """Build the full HTML document string."""
+    def build_html(self, results: list) -> str:
+        """
+        Build the full HTML report as a string, without writing it to disk.
+
+        Exposed separately from generate() so callers like the web UI can
+        stream the report directly to a browser response instead of a file.
+        """
         summary = self.scorer.summarize(results)
         total = len(results)
         detected = sum(1 for r in results if r.injection_detected)

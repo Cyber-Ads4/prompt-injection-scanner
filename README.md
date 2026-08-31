@@ -65,8 +65,13 @@ prompt-injection-scanner/
 │   └── scorer.py             # Risk scoring engine — critical / high / medium / low / none
 ├── reports/
 │   └── report_gen.py         # HTML report generator
+├── webapp/
+│   ├── app.py                # Flask web UI — run scans and view results in a browser
+│   ├── templates/            # index.html (scan form) + results.html (findings table)
+│   └── static/style.css
 └── tests/
-    └── test_scanner.py       # 16 unit tests across all modules (pytest)
+    ├── test_scanner.py       # 16 unit tests across all modules (pytest)
+    └── test_webapp.py        # Web UI smoke tests — no API key required
 ```
 
 ---
@@ -104,14 +109,66 @@ Open `reports/results.html` in your browser to view the full security report.
 
 ---
 
+## Web UI
+
+Prefer clicking a button over the CLI? Run the scanner from a browser instead:
+
+```bash
+export ANTHROPIC_API_KEY="your-key-here"
+python -m webapp.app
+```
+
+Then open **http://127.0.0.1:5000** — pick a category, hit **Run scan**, and view results
+in a table with the same risk breakdown as the CLI, plus a button to download the
+standalone HTML report.
+
+⚠ This runs a live scan against a real model using your API key. Running it with no
+`APP_PASSWORD` set (the default) is fine on `127.0.0.1` where only you can reach it,
+but leaves it open — don't put it on a public network like that. See **Deploying
+publicly** below before exposing it.
+
+---
+
+## Deploying publicly
+
+If you want a live URL — for a portfolio demo, say — the web UI supports a password
+gate and per-IP rate limiting so it isn't an open API-key-burning endpoint:
+
+- **`APP_PASSWORD`** — set this and every route requires logging in with that
+  password first (session-based, checked with a constant-time comparison). Leave it
+  unset for the local, no-login workflow above.
+- **`/scan`** is rate-limited to 5 requests per hour per IP, on top of the password
+  gate — a second layer, not a substitute for it.
+- **`FLASK_SECRET_KEY`** — set this in production so login sessions survive a
+  server restart (otherwise a random key is generated per process).
+
+### Deploy to Render
+
+This repo includes a `render.yaml` blueprint:
+
+1. Push this repo to GitHub (already done if you're reading this from there).
+2. In the [Render dashboard](https://dashboard.render.com), choose **New +** →
+   **Blueprint**, and point it at this repo. Render reads `render.yaml` and creates
+   the web service automatically (free tier, `gunicorn` as the production server).
+3. When prompted, set the environment variables: `ANTHROPIC_API_KEY` and
+   `APP_PASSWORD`. `FLASK_SECRET_KEY` is generated for you.
+4. Deploy. Render gives you a public `https://<your-app>.onrender.com` URL —
+   log in with the password you set, and scan away.
+
+The same `gunicorn webapp.app:app` command works on any other Python host
+(Fly.io, Railway, a VPS) if you'd rather not use Render.
+
+---
+
 ## Run the tests
 
 ```bash
-pytest tests/test_scanner.py -v
+pytest tests/ -v
 ```
 
-16 tests covering payload validation, detection logic, risk scoring, and edge cases.
-All tests pass without requiring an API key — safe to run in any environment.
+20 tests covering payload validation, detection logic, risk scoring, edge cases,
+and the web UI's routes. All tests pass without requiring an API key — safe to run
+in any environment.
 
 ---
 

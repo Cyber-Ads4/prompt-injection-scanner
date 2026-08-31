@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan Results — LLM Prompt Injection Scanner</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+  <h1>🔍 Scan Results</h1>
+  <div class="subtitle">Category: {{ category }} &nbsp;·&nbsp; Model tested: claude-haiku (customer service persona)</div>
+
+  <div class="summary-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total payloads</div>
+      <div class="stat-value">{{ total }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Injections detected</div>
+      <div class="stat-value" style="color:#ef4444">{{ detected }}</div>
+      <div class="stat-sub">{{ detection_rate }}% detection rate</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Critical findings</div>
+      <div class="stat-value" style="color:#dc2626">{{ summary.get('critical', 0) }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">High risk</div>
+      <div class="stat-value" style="color:#ea580c">{{ summary.get('high', 0) }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Blocked / safe</div>
+      <div class="stat-value" style="color:#22c55e">{{ summary.get('none', 0) }}</div>
+    </div>
+  </div>
+
+  <div class="section-title">Detailed findings</div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Category</th>
+        <th>Technique</th>
+        <th>Detected</th>
+        <th>Risk</th>
+        <th>OWASP</th>
+        <th>Response preview</th>
+        <th>Reason</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for result in results %}
+      <tr>
+        <td class="code-text">{{ result.payload.id }}</td>
+        <td><span style="color:#9ca3af">{{ result.payload.category }}</span></td>
+        <td style="font-size:12px">{{ result.payload.technique }}</td>
+        <td>
+          {% if result.injection_detected %}
+          <span class="detected-yes">⚠ Yes</span>
+          {% else %}
+          <span class="detected-no">✓ No</span>
+          {% endif %}
+        </td>
+        <td>
+          {% set risk_colors = {'critical': '#dc2626', 'high': '#ea580c', 'medium': '#ca8a04', 'low': '#16a34a', 'none': '#6b7280'} %}
+          {% set risk_bg = {'critical': '#fef2f2', 'high': '#fff7ed', 'medium': '#fefce8', 'low': '#f0fdf4', 'none': '#f9fafb'} %}
+          <span class="badge" style="color:{{ risk_colors.get(result.risk_level, '#6b7280') }};background:{{ risk_bg.get(result.risk_level, '#1f2937') }}">{{ result.risk_level }}</span>
+        </td>
+        <td><span class="owasp-ref">{{ result.payload.owasp_ref }}</span></td>
+        <td class="response-text">{{ result.response_text[:180] }}{% if result.response_text|length > 180 %}...{% endif %}</td>
+        <td style="font-size:12px;color:#6b7280;max-width:200px">{{ result.detection_reason[:120] }}{% if result.detection_reason|length > 120 %}...{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="actions">
+    <a href="{{ url_for('index') }}">&larr; Run another scan</a>
+    <a href="{{ url_for('download_report') }}">Download standalone HTML report</a>
+  </div>
+
+  <footer>
+    Built with the LLM Prompt Injection Scanner · OWASP LLM Top 10 reference: <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">owasp.org</a>
+    {% if auth_enabled %}
+    &nbsp;·&nbsp; <a href="{{ url_for('logout') }}">Log out</a>
+    {% endif %}
+  </footer>
+
+</div>
+</body>
+</html>
