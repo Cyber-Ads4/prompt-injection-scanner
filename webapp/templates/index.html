@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Prompt Injection Scanner</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+
+  <h1>🔍 LLM Prompt Injection Scanner</h1>
+  <div class="subtitle">Send OWASP LLM Top 10 attack payloads at a live model and see what gets through.</div>
+
+  {% if not has_key %}
+  <div class="warning">
+    ⚠ <strong>ANTHROPIC_API_KEY</strong> is not set on the server. Set it and restart the app before running a scan:
+    <br><code>export ANTHROPIC_API_KEY="your-key-here"</code>
+  </div>
+  {% endif %}
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="card">
+    <form action="{{ url_for('scan') }}" method="post">
+      <label for="category">Payload category</label>
+      <select id="category" name="category">
+        <option value="all">All categories</option>
+        {% for category in categories %}
+        <option value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" {% if not has_key %}disabled{% endif %}>Run scan</button>
+    </form>
+  </div>
+
+  <footer>
+    Also available as a CLI: <code>python main.py --category all --output reports/results.html</code>
+    &nbsp;·&nbsp; OWASP LLM Top 10 reference: <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">owasp.org</a>
+  </footer>
+
+</div>
+</body>
+</html>

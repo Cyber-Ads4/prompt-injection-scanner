@@ -65,8 +65,13 @@ prompt-injection-scanner/
 │   └── scorer.py             # Risk scoring engine — critical / high / medium / low / none
 ├── reports/
 │   └── report_gen.py         # HTML report generator
+├── webapp/
+│   ├── app.py                # Flask web UI — run scans and view results in a browser
+│   ├── templates/            # index.html (scan form) + results.html (findings table)
+│   └── static/style.css
 └── tests/
-    └── test_scanner.py       # 16 unit tests across all modules (pytest)
+    ├── test_scanner.py       # 16 unit tests across all modules (pytest)
+    └── test_webapp.py        # Web UI smoke tests — no API key required
 ```
 
 ---
@@ -104,14 +109,34 @@ Open `reports/results.html` in your browser to view the full security report.
 
 ---
 
+## Web UI
+
+Prefer clicking a button over the CLI? Run the scanner from a browser instead:
+
+```bash
+export ANTHROPIC_API_KEY="your-key-here"
+python -m webapp.app
+```
+
+Then open **http://127.0.0.1:5000** — pick a category, hit **Run scan**, and view results
+in a table with the same risk breakdown as the CLI, plus a button to download the
+standalone HTML report.
+
+⚠ This runs a live scan against a real model using your API key. It's built to run
+locally only — don't expose it on a public network, since anyone who can reach it
+could trigger scans that burn your API quota.
+
+---
+
 ## Run the tests
 
 ```bash
-pytest tests/test_scanner.py -v
+pytest tests/ -v
 ```
 
-16 tests covering payload validation, detection logic, risk scoring, and edge cases.
-All tests pass without requiring an API key — safe to run in any environment.
+20 tests covering payload validation, detection logic, risk scoring, edge cases,
+and the web UI's routes. All tests pass without requiring an API key — safe to run
+in any environment.
 
 ---
 
